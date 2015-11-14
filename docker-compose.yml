@@ -5,10 +5,9 @@ elasticsearch:
       - "9200:9200"
 
 logstash:
-    image: logstash:latest
+    build: logstash/
+    container_name: logstash
     command: logstash -f /etc/logstash/conf.d/logstash.conf
-    volumes:
-        - ./logstash/config:/etc/logstash/conf.d
     ports:
         - "5000:5000"
         - "5514:5514"
@@ -17,24 +16,10 @@ logstash:
 
 kibana:
     build: kibana/
-    volumes:
-        - ./kibana/config/kibana.yml:/opt/kibana/config/kibana.yml
     ports:
         - "5601"
     links:
         - elasticsearch
     hostname: kibana.local
     environment:
-        - "INTERLOCK_DATA={\"port\": 5601}"
-
-lb:
-    image: ehazlett/interlock:latest
-    command: -D -p haproxy start
-    environment:
-        HAPROXY_PROXY_BACKEND_OVERRIDE_ADDRESS: 192.168.7.66
-    volumes:
-        - /tmp/swarm.sock:/var/run/docker.sock
-    links:
-        - kibana
-    ports:
-        - "80:80"
+        - "INTERLOCK_DATA={\"port\": 5601, \"hostname\":\"kibana\", \"domain\": \"demo\"}"
